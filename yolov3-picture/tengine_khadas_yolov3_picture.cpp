@@ -17,10 +17,6 @@
  * under the License.
  */
 
-/*
- * Copyright (c) 2020, OPEN AI LAB
- * Author: qtang@openailab.com
- */
 
 #include <iostream>
 #include <cstdlib>
@@ -160,7 +156,6 @@ void get_input_data_cv(const cv::Mat& sample, uint8_t* input_data, int img_h, in
 					udata = 255;
 				else if (udata < 0)
 					udata = 0;
-				printf("%d\n",udata);
 				input_data[c * hw + h * img_w + w] = udata;
 				img_data++;
 			}
@@ -676,6 +671,16 @@ int check_file_exist(const char* file_name)
     return 1;
 }
 
+ static cv::Scalar obj_id_to_color(int obj_id) {
+	 int const colors[6][3] = { { 1,0,1 },{ 0,0,1 },{ 0,1,1 },{ 0,1,0 },{ 1,1,0 },{ 1,0,0 } };
+	 int const offset = obj_id * 123457 % 6;
+	 int const color_scale = 150 + (obj_id * 123457) % 100;
+	 cv::Scalar color(colors[offset][0], colors[offset][1], colors[offset][2]);
+	 color *= color_scale;
+	 return color;
+ }
+
+
 
 void postpress_graph(const cv::Mat& sample, graph_t graph, int output_node_num,int net_w, int net_h,int numBBoxes,int total_numAnchors,int layer_type)
 {
@@ -736,7 +741,8 @@ void postpress_graph(const cv::Mat& sample, graph_t graph, int output_node_num,i
 					cls = j;
 				}
 				fprintf(stderr, "%d: %.0f%%\n", cls, dets[i].prob[j] * 100);
-				sprintf(cvTest,"%s:%.0f%%",coco_names[cls],dets[i].prob[j]*100);
+//				sprintf(cvTest,"%s:%.0f%%",coco_names[cls],dets[i].prob[j]*100);
+				sprintf(cvTest,"%s",coco_names[cls]);
 			}
 
 		}
@@ -745,16 +751,21 @@ void postpress_graph(const cv::Mat& sample, graph_t graph, int output_node_num,i
 			box b = dets[i].bbox;
 			int left = (b.x - b.w / 2.)  * frame.cols;
 			int top = (b.y - b.h / 2.) * frame.rows;
-			if (top < 10) {
-				top = 10;
+			if (top < 30) {
+				top = 30;
 				left +=10;
 			}
 
 			fprintf(stderr, "left = %d,top = %d\n", left, top);
 			cv::Rect rect(left, top, b.w*frame.cols, b.h*frame.rows);
+			cv::Rect rect1(left, top-20, 100, 20);
 
-			cv::rectangle(frame,rect,cv::Scalar(255,0,0),1,8,0);
-			cv::putText(frame,cvTest,cvPoint(left,top),cv::FONT_HERSHEY_COMPLEX,0.8,cv::Scalar(255,0,0),2);
+			int baseline;
+			cv::Size text_size = cv::getTextSize(cvTest, cv::FONT_HERSHEY_COMPLEX,0.5,1,&baseline);
+			cout << text_size.width << endl;
+			cv::rectangle(frame,rect,obj_id_to_color(cls),2,20,0);
+			cv::rectangle(frame,rect1,obj_id_to_color(cls),-1);
+			cv::putText(frame,cvTest,cvPoint(left+((100-text_size.width)/2),top-5),cv::FONT_HERSHEY_COMPLEX,0.5,cv::Scalar(0,0,0),1);
 			cout << cvTest << endl;
 		}
 
