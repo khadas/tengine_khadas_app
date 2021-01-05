@@ -781,14 +781,14 @@ void postpress_graph(const cv::Mat& sample, graph_t graph, int output_node_num,i
 			fprintf(stderr, "left = %d,top = %d\n", left, top);
 #endif
 			cv::Rect rect(left, top, b.w*frame.cols, b.h*frame.rows);
-			cv::Rect rect1(left, top-20, 100, 20);
 
 			int baseline;
 			cv::Size text_size = cv::getTextSize(cvTest, cv::FONT_HERSHEY_COMPLEX,0.5,1,&baseline);
 
+			cv::Rect rect1(left, top-20, text_size.width+10, 20);
 			cv::rectangle(frame,rect,obj_id_to_color(cls),1,8,0);
 			cv::rectangle(frame,rect1,obj_id_to_color(cls),-1);
-			cv::putText(frame,cvTest,cvPoint(left+((100-text_size.width)/2),top-5),cv::FONT_HERSHEY_COMPLEX,0.5,cv::Scalar(0,0,0),1);
+			cv::putText(frame,cvTest,cvPoint(left+5,top-5),cv::FONT_HERSHEY_COMPLEX,0.5,cv::Scalar(0,0,0),1);
 		}
 
 
