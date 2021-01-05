@@ -56,8 +56,9 @@
 #define CAMERA_WEIGHT 1920
 #define CAMERA_HIGHT 1080
 
+#if DEBUG_OPTION
 static unsigned int tmpVal;
-
+#endif
 using namespace std;
 
 typedef struct
@@ -701,9 +702,9 @@ static cv::Scalar obj_id_to_color(int obj_id) {
 
 
 
-void postpress_graph(const cv::Mat& sample, graph_t graph, int output_node_num,int net_w, int net_h,int numBBoxes,int total_numAnchors,int layer_type,char *window_name)
+void postpress_graph(cv::Mat& frame, graph_t graph, int output_node_num,int net_w, int net_h,int numBBoxes,int total_numAnchors,int layer_type,char *window_name)
 {
-	cv::Mat frame = sample;
+//	cv::Mat frame = sample;
 
 	vector<layer> layers_params;
 	layers_params.clear();
@@ -761,7 +762,6 @@ void postpress_graph(const cv::Mat& sample, graph_t graph, int output_node_num,i
 				}
 #if DEBUG_OPTION
 				fprintf(stderr, "%d: %.0f%%\n", cls, dets[i].prob[j] * 100);
-				sprintf(cvTest,"%s:%.0f%%",coco_names[cls],dets[i].prob[j]*100);
 #endif
 				sprintf(cvTest,"%s",coco_names[cls]);
 			}
@@ -812,7 +812,7 @@ void postpress_graph(const cv::Mat& sample, graph_t graph, int output_node_num,i
 
 	cv::imshow(window_name, frame);
 	cv::waitKey(1);
-	frame.release();
+//	frame.release();
 }
 
 static void *thread_camera(void *parameter)
@@ -824,7 +824,9 @@ static void *thread_camera(void *parameter)
 	int net_w = MODEL_COLS;
 	int net_h = MODEL_ROWS;
 
+#if DEBUG_OPTION
 	struct timeval tmsStart, tmsEnd;
+#endif
 
 	char *window_name = (char *)"CameraWindow";
 
@@ -922,29 +924,34 @@ static void *thread_camera(void *parameter)
 
 		pthread_mutex_unlock(&mutex4q);
 
-//#if DEBUG_OPTION
-		gettimeofday(&tmsStart, 0);
-//#endif
-
 		get_input_data_cv(frame,input_data.data(),net_w,net_h,input_scale, input_zero_point,0);
 
+#if DEBUG_OPTION
+		gettimeofday(&tmsStart, 0);
+#endif
 		/* run graph */
+#if DEBUG_OPTION
 		double min_time = __DBL_MAX__;
 		double max_time = -__DBL_MAX__;
 		double total_time = 0.;
+#endif	
 		for (int i = 0; i < repeat_count; i++)
 		{
+#if DEBUG_OPTION
 			double start = get_current_time();
+#endif	
 			if (run_graph(graph, 1) < 0)
 			{
 				fprintf(stderr, "Run graph failed\n");
 				exit(-1);
 			}
+#if DEBUG_OPTION
 			double end = get_current_time();
 			double cur = end - start;
 			total_time += cur;
 			min_time = std::min(min_time, cur);
 			max_time = std::max(max_time, cur);
+#endif	
 		}
 #if DEBUG_OPTION
 		fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
@@ -956,11 +963,11 @@ static void *thread_camera(void *parameter)
 		int output_node_num = get_graph_output_node_number(graph);
 	
 		postpress_graph(frame,graph,output_node_num,net_w,net_h,numBBoxes,total_numAnchors,layer_type,window_name);
-//#if DEBUG_OPTION
+#if DEBUG_OPTION
 		gettimeofday(&tmsEnd, 0);
 		tmpVal = 1000 * (tmsEnd.tv_sec - tmsStart.tv_sec) + (tmsEnd.tv_usec - tmsStart.tv_usec) / 1000;
 		printf("FPS:%d\n",1000/(tmpVal+8));
-//#endif
+#endif
 		frame.release();
 	}
 	/* release tengine */
