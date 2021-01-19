@@ -1,7 +1,15 @@
 ### Compile
 
+1. HOST:
+
 ```shell
 $ ./build-cv3.sh <path to tengine_khadas_sdk>
+```
+
+2. LOCAL:
+
+```shell
+$ ./build-cv3.sh
 ```
 
 ### Run
