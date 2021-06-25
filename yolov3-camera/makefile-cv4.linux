@@ -6,7 +6,7 @@ OBJ_DIR = cv3_output
 #LIBS += -L$(NNSDK_DIR)/lib/lib64 -lnnsdk
 LIBS += -L$(OPENCV_ROOT)/lib -lopencv_core -lopencv_dnn -lopencv_imgproc -lopencv_core -lopencv_videoio -lopencv_imgcodecs -lopencv_highgui -lopencv_video
 LIBS += -L$(OPENCV_ROOT)/lib -lz -lm 
-LIBS += -L$(TENGINE_DIR)/lib -ltengine-lite -lvxplugin
+LIBS += -L$(TENGINE_DIR)/lib -ltengine-lite
 LIBS += -L$(DDK_DIR)/drivers -lOpenVX -lOpenVXU -lCLC -lVSC -lGAL -lovxlib -lArchModelSw -lNNArchPerf
 LIBS += -lpthread
 
@@ -15,7 +15,7 @@ INCLUDE += -I$(TENGINE_DIR)/include
 INCLUDE += -I$(DDK_DIR)/include
 INCLUDE += -I$(OPENCV_ROOT)/modules/objdetect/include
 INCLUDE += -I$(OPENCV_ROOT)/modules/core/include
-INCLUDE += -I$(OPENCV_ROOT)/modules
+INCLUDE += -I$(OPENCV_ROOT)/
 INCLUDE += -I$(OPENCV_ROOT)/modules/highgui/include
 INCLUDE += -I$(OPENCV_ROOT)/modules/imgcodecs/include
 INCLUDE += -I$(OPENCV_ROOT)/modules/videoio/include

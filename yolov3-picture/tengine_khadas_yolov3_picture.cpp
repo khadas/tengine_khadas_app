@@ -35,14 +35,16 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/types_c.h>
+#include <opencv2/highgui/highgui_c.h>
 
 #include "common.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
-#define VXDEVICE  "VX"
+#define VXDEVICE  "TIMVX"
 
 #define MODEL_COLS 416
 #define MODEL_ROWS 416
@@ -852,19 +854,18 @@ int main(int argc, char* argv[])
     init_tengine();
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-    /* load npu backend */
-    if (load_tengine_plugin(VXDEVICE, "libvxplugin.so", "vx_plugin_init") < 0)
-    {
-        fprintf(stderr, "Load vx plugin failed.\n");
-        return -1;
-    }
+	/* set inference context with npu */
+	context_t timvx_context = create_context("timvx", 1);
 
-    /* set inference context with npu */
-    context_t vx_context = create_context("vx", 1);
-    add_context_device(vx_context, VXDEVICE);
+	int rtt = set_context_device(timvx_context, VXDEVICE, nullptr, 0);
+	if (0 > rtt)
+	{
+		fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+		exit(-1);
+	}
 
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(vx_context, "tengine", model_file);
+    graph_t graph = create_graph(timvx_context, "tengine", model_file);
     if (graph == nullptr)
     {
         fprintf(stderr, "Create graph failed.\n");

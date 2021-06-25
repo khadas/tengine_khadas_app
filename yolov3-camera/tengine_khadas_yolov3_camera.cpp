@@ -39,14 +39,15 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/types_c.h>
 
 #include "common.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
-#define VXDEVICE  "VX"
+#define VXDEVICE  "TIMVX"
 
 #define MODEL_COLS 416
 #define MODEL_ROWS 416
@@ -834,8 +835,8 @@ static void *thread_camera(void *parameter)
 	string res=str.substr(10);
 	
 	cv::VideoCapture cap(stoi(res));
-	cap.set(CV_CAP_PROP_FRAME_WIDTH, CAMERA_WEIGHT);
-	cap.set(CV_CAP_PROP_FRAME_HEIGHT, CAMERA_HIGHT);
+	cap.set(cv::CAP_PROP_FRAME_WIDTH, CAMERA_WEIGHT);
+	cap.set(cv::CAP_PROP_FRAME_HEIGHT, CAMERA_HIGHT);
 	
 	if (!cap.isOpened()) {
 		cout << "capture device failed to open!" << endl;
@@ -851,19 +852,26 @@ static void *thread_camera(void *parameter)
 	init_tengine();
 	fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-	/* load npu backend */
-	if (load_tengine_plugin(VXDEVICE, "libvxplugin.so", "vx_plugin_init") < 0)
+//	/* load npu backend */
+//	if (load_tengine_plugin(VXDEVICE, "libvxplugin.so", "vx_plugin_init") < 0)
+//	{
+//		fprintf(stderr, "Load vx plugin failed.\n");
+//		exit(-1);
+//	}
+
+	/* set inference context with npu */
+	context_t timvx_context = create_context("timvx", 1);
+//	add_context_device(vx_context, VXDEVICE);
+
+	int rtt = set_context_device(timvx_context, VXDEVICE, nullptr, 0);
+	if (0 > rtt)
 	{
-		fprintf(stderr, "Load vx plugin failed.\n");
+		fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
 		exit(-1);
 	}
 
-	/* set inference context with npu */
-	context_t vx_context = create_context("vx", 1);
-	add_context_device(vx_context, VXDEVICE);
-
 	/* create graph, load tengine model xxx.tmfile */
-	graph_t graph = create_graph(vx_context, "tengine", model_file);
+	graph_t graph = create_graph(timvx_context, "tengine", model_file);
 	if (graph == nullptr)
 	{
 		fprintf(stderr, "Create graph failed.\n");
