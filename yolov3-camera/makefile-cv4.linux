@@ -1,5 +1,5 @@
 TARGET_NAME = tengine_khadas_yolov3_camera
-OBJ_DIR = cv3_output
+OBJ_DIR = cv4_output
 #INSTALL_DIR :=
 
 
